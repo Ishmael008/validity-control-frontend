@@ -1,26 +1,24 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <q-layout view="hHh lpR fFf">
+    <q-header elevated class="bg-primary text-white">
+      <q-toolbar>
+        <q-toolbar-title>Controle de Validade</q-toolbar-title>
+
+        <!-- Botões de navegação no header -->
+        <q-btn to="/register" label="Cadastrar" flat />
+        <q-btn to="/" label="Login" flat />
+        
+      </q-toolbar>
+    </q-header>
+
+    <q-page-container>
+      <router-view />
+    </q-page-container>
+  </q-layout>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
 export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
+  name: 'App'
 }
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
