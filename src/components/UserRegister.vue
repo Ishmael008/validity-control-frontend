@@ -2,7 +2,6 @@
   <q-page class="flex flex-center bg-blue-1">
     <q-card class="q-pa-xl shadow-10 bg-white" style="width: 400px; max-width: 90vw;">
       <div class="text-center q-mb-md">
-        
         <h2 class="text-primary q-mt-md">Bem-vindo ao Controle de Validade</h2>
         <p class="text-subtitle2">Faça seu cadastro abaixo</p>
       </div>
@@ -15,14 +14,23 @@
           lazy-rules
           :rules="[val => !!val || 'Nome é obrigatório']"
         />
+
         <q-input
           filled
-          v-model="usuario.email"
-          label="Email"
-          type="email"
+          v-model="usuario.password"
+          :type="mostrarSenha ? 'text' : 'password'"
+          label="Senha"
           lazy-rules
-          :rules="[val => !!val || 'Email é obrigatório']"
-        />
+          :rules="[val => !!val || 'Senha é obrigatória']"
+        >
+          <template v-slot:append>
+            <q-icon
+              :name="mostrarSenha ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="mostrarSenha = !mostrarSenha"
+            />
+          </template>
+        </q-input>
 
         <q-btn label="Cadastrar" color="primary" type="submit" class="full-width" />
       </q-form>
@@ -40,26 +48,42 @@ export default {
     return {
       usuario: {
         name: '',
-        email: ''
-      }
+        password: ''
+      },
+      mostrarSenha: false
     }
   },
   methods: {
     async cadastrarUsuario() {
       try {
-        await axios.post('https://localhost:7005/api/1/Usuario', this.usuario)
+        // Cria um FormData para enviar como multipart/form-data
+        const formData = new FormData()
+        formData.append('name', this.usuario.name)
+        formData.append('password', this.usuario.password)
+
+        // Faz a requisição POST com FormData (FromForm no backend)
+        await axios.post(
+          'https://validity-controll-uyi3.onrender.com/api/Auth/login',
+          formData
+        )
+
         Notify.create({
-         
-          message: 'Usuário cadastrado com sucesso!'
+          message: 'Usuário cadastrado com sucesso!',
+          color: 'positive'
         })
-        this.$router.push('/register')
+
+        this.$router.push('/login')
+
+        // Limpa os campos
         this.usuario.name = ''
-        this.usuario.email = ''
+        this.usuario.password = ''
       } catch (error) {
         Notify.create({
-
-          message: 'Erro ao cadastrar usuário.'
+          message:
+            'Erro ao cadastrar usuário. Esse nome já existe ou há um erro no servidor!',
+          color: 'negative'
         })
+        console.error(error)
       }
     }
   }
@@ -67,7 +91,10 @@ export default {
 </script>
 
 <style scoped>
-h2 {
-  font-weight: bold;
+.q-card {
+  min-height: 500px;
+  width: 90%;
+  max-width: 1000px;
+  border-radius: 16px;
 }
 </style>

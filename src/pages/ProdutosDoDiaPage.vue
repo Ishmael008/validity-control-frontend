@@ -15,7 +15,7 @@
             <div><strong>EAN:</strong> {{ produto.eanOfProduct || 'Indefinido' }}</div>
             <div><strong>Validade:</strong> {{ formatDate(produto.validity) }}</div>
             <div><strong>Vence em:</strong> {{ produto.daysToMatury ?? 'Indefinido' }} dia(s)</div>
-            <div><strong>Descrição:</strong> {{ produto.descrição || 'Sem descrição' }}</div>
+            <div><strong>Descrição:</strong> {{ produto.description || 'Sem descrição' }}</div>
           </div>
         </div>
 
@@ -45,7 +45,7 @@ export default {
   methods: {
     async carregarProdutos() {
       try {
-        const response = await axios.get('https://localhost:7005/api/1/productcontrol/products-today')
+        const response = await axios.get('https://validity-controll-uyi3.onrender.com/api/1/productcontrol/products-today')
         this.produtos = response.data
       } catch (error) {
         console.error(error)

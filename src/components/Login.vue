@@ -1,7 +1,6 @@
 <template>
   <q-page class="row items-center justify-center bg-blue-1">
     <q-card class="row shadow-4" style="max-width: 1000px; width: 100%;">
-      <!-- Lado esquerdo: Mensagem de boas-vindas -->
       <div class="col-5 bg-primary text-white flex flex-center column q-pa-xl">
         <div class="text-h4 text-center">Bem-vindo ao Controle de Validade</div>
         <div class="text-subtitle1 text-center q-mt-sm">
@@ -9,7 +8,6 @@
         </div>
       </div>
 
-      <!-- Lado direito: Login -->
       <div class="col-7 q-pa-xl">
         <div class="text-h5 text-center text-primary q-mb-lg">Acesse sua conta</div>
 
@@ -22,23 +20,16 @@
             :dense="true"
             prepend-inner-icon="person"
           />
-
           <q-input
             filled
-            v-model="usuario.email"
-            label="E-mail"
-            type="email"
+            v-model="usuario.password"
+            label="Senha"
+            type="password"
             class="q-mb-lg"
             :dense="true"
-            prepend-inner-icon="email"
+            prepend-inner-icon="lock"
           />
-
-          <q-btn
-            label="Entrar"
-            color="primary"
-            class="full-width"
-            type="submit"
-          />
+          <q-btn label="Entrar" color="primary" class="full-width" type="submit" />
 
           <div class="q-mt-md text-center">
             <q-btn flat label="Ainda não tem conta? Cadastre-se" @click="$router.push('/register')" />
@@ -54,38 +45,53 @@ import axios from 'axios'
 import { Notify } from 'quasar'
 
 export default {
-  name: 'UserLogin', // use "UserLogin" em vez de "Login"
+  name: 'UserLogin',
   data () {
     return {
       usuario: {
         name: '',
-        email: ''
+        password: ''
       }
     }
   },
   methods: {
     async loginUsuario () {
       try {
-        const response = await axios.get(
-          `https://localhost:7005/api/1/usuario/validar?name=${this.usuario.name}&email=${this.usuario.email}`
+        const response = await axios.post(
+          'https://validity-controll-uyi3.onrender.com/api/Auth/login',
+          {
+            name: this.usuario.name,
+            password: this.usuario.password
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
         )
 
-        if (response.data === true) {
+        const token = response.data.token
+
+        if (token) {
+          localStorage.setItem('authToken', token)
+
           Notify.create({
             message: 'Login realizado com sucesso!',
             color: 'positive'
           })
+
           this.$router.push('/cadastro/mercearia')
         } else {
           Notify.create({
-            color: 'negative',
-            message: 'Usuário não encontrado.'
+            message: 'Token inválido.',
+            color: 'negative'
           })
         }
       } catch (error) {
+        console.error('Erro no login:', error)
         Notify.create({
           color: 'negative',
-          message: 'Erro ao tentar logar. Verifique os dados.'
+          message: 'Usuário ou senha inválidos.'
         })
       }
     }
@@ -101,3 +107,4 @@ export default {
   border-radius: 16px;
 }
 </style>
+

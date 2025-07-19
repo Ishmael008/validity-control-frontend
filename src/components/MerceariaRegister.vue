@@ -116,7 +116,7 @@ export default {
         // Envia cada produto individualmente
         for (const produto of this.produtos) {
           await axios.post(
-            'https://localhost:7005/api/1/productcontrol',
+            'https://validity-controll-uyi3.onrender.com/api/1/ProductControl',
             produto,
             {
               headers: {
