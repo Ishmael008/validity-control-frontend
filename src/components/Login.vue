@@ -1,67 +1,103 @@
 <template>
-  <div class="q-pa-md">
-    <div class="row items-center justify-center q-gutter-md" style="min-height: 100vh;">
-      <div class="col-12 col-md-6 q-pa-md bg-primary text-white rounded-borders text-center">
-        <div class="text-h5 q-mb-sm" style="word-break: break-word;">
-          {{ welcomeMessage }}
+  <q-page class="q-pa-md flex flex-center bg-blue-1">
+    <q-card class="q-pa-none shadow-4 q-responsive" style="width: 100%; max-width: 1000px;">
+      <div class="row q-col-gutter-sm">
+        <!-- Lado Esquerdo - apenas visível em telas md ou maiores -->
+        <div class="col-12 col-md-5 bg-primary text-white flex flex-center column q-pa-xl hidden-xs">
+          <div class="text-h5 text-center">Bem-vindo ao Controle de Validade</div>
+          <div class="text-subtitle2 text-center q-mt-sm">
+            Gerencie com facilidade a validade dos seus produtos!
+          </div>
         </div>
-        <p>Gerencie com facilidade a validade dos seus produtos!</p>
-      </div>
 
-      <div class="col-12 col-md-4 q-pa-md bg-white rounded-borders shadow-2">
-        <h5 class="text-center">Acesse sua conta</h5>
+        <!-- Lado Direito - formulário -->
+        <div class="col-12 col-md-7 q-pa-xl">
+          <div class="text-h5 text-center text-primary q-mb-lg">Acesse sua conta</div>
 
-        <q-input v-model="name" label="Nome" outlined class="q-mb-md" />
-        <q-input v-model="password" label="Senha" type="password" outlined class="q-mb-md" />
+          <q-form @submit.prevent="loginUsuario">
+            <q-input
+              filled
+              v-model="usuario.name"
+              label="Nome"
+              class="q-mb-md"
+              :dense="$q.screen.lt.md"
+              prepend-inner-icon="person"
+            />
+            <q-input
+              filled
+              v-model="usuario.password"
+              label="Senha"
+              type="password"
+              class="q-mb-lg"
+              :dense="$q.screen.lt.md"
+              prepend-inner-icon="lock"
+            />
+            <q-btn label="Entrar" color="primary" class="full-width" type="submit" />
 
-        <q-btn label="ENTRAR" color="primary" @click="login" class="full-width q-mb-sm" />
-
-        <div class="text-center">
-          <p class="text-caption">AINDA NÃO TEM CONTA?</p>
-          <q-btn flat label="CADASTRE-SE" color="primary" to="/register" />
+            <div class="q-mt-md text-center">
+              <q-btn flat label="Ainda não tem conta? Cadastre-se" @click="$router.push('/register')" />
+            </div>
+          </q-form>
         </div>
       </div>
-    </div>
-  </div>
+    </q-card>
+  </q-page>
 </template>
 
 <script>
+import axios from 'axios'
+import { Notify } from 'quasar'
+
 export default {
+  name: 'UserLogin', // <- Corrige o erro do ESLint
   data () {
     return {
-      name: '',
-      password: '',
-      welcomeMessage: 'Bem-vindo ao Controle de Validade'
-    }
-  },
-  mounted () {
-    const savedName = localStorage.getItem('userName')
-    if (savedName) {
-      this.welcomeMessage = `Bem-vindo de volta, ${savedName}!`
+      usuario: {
+        name: '',
+        password: ''
+      }
     }
   },
   methods: {
-    async login () {
+    async loginUsuario () {
       try {
-        const response = await fetch('https://sua-api.com/api/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
+        const response = await axios.post(
+          'https://validity-controll-uyi3.onrender.com/api/Auth/login',
+          {
+            name: this.usuario.name,
+            password: this.usuario.password
           },
-          body: JSON.stringify({ name: this.name, password: this.password })
-        })
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        )
 
-        if (!response.ok) {
-          throw new Error('Login inválido')
+        const token = response.data.token
+
+        if (token) {
+          localStorage.setItem('authToken', token)
+          localStorage.setItem('username', this.usuario.name)
+
+          Notify.create({
+            message: 'Login realizado com sucesso!',
+            color: 'positive'
+          })
+
+          this.$router.push('/cadastro/mercearia')
+        } else {
+          Notify.create({
+            message: 'Token inválido.',
+            color: 'negative'
+          })
         }
-
-        const data = await response.json()
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('userName', this.name)
-
-        this.$router.push('/produtos-do-dia')
       } catch (error) {
-        alert(error.message)
+        console.error('Erro no login:', error)
+        Notify.create({
+          color: 'negative',
+          message: 'Usuário ou senha inválidos.'
+        })
       }
     }
   }
@@ -69,10 +105,8 @@ export default {
 </script>
 
 <style scoped>
-@media (max-width: 600px) {
-  .text-h5 {
-    font-size: 1.2rem;
-  }
+.q-card {
+  border-radius: 16px;
 }
 </style>
 
