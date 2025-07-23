@@ -1,50 +1,70 @@
 <template>
-  <q-page class="row items-center justify-center bg-blue-1" style="min-height: 100vh;">
-    <q-card class="row shadow-4" style="max-width: 1000px; width: 100%;">
-      <div class="col-5 bg-primary text-white flex flex-center column q-pa-xl">
-        <div class="text-h4 text-center">Bem-vindo ao Controle de Validade</div>
-        <div class="text-subtitle2 text-center q-mt-md">Gerencie seus produtos com praticidade</div>
-      </div>
+  <q-page class="q-pa-md flex flex-center bg-blue-1">
+    <q-card class="q-pa-none shadow-4 q-responsive" style="width: 100%; max-width: 1000px;">
+      <div class="row q-col-gutter-sm">
+        <!-- Lado Esquerdo - apenas visível em telas md ou maiores -->
+        <div class="col-12 col-md-5 bg-primary text-white flex flex-center column q-pa-xl hidden-xs">
+          <div class="text-h4 text-center">Bem-vindo ao Controle de Validade</div>
+          <div class="text-subtitle1 text-center q-mt-sm">
+            Gerencie seus produtos com praticidade
+          </div>
+        </div>
 
-      <div class="col-7 q-pa-xl">
-        <div class="text-h6 text-center q-mb-md">Login</div>
+        <!-- Lado Direito - formulário -->
+        <div class="col-12 col-md-7 q-pa-xl">
+          <div class="text-h5 text-center text-primary q-mb-lg">Acesse sua conta</div>
 
-        <q-form @submit.prevent="realizarLogin">
-          <q-input
-            v-model="name"
-            label="Nome de Usuário"
-            dense
-            outlined
-            prepend-inner-icon="person"
-            class="q-mb-md"
-            :disable="carregando"
-            :rules="[val => !!val || 'Obrigatório']"
-          />
-          <q-input
-            v-model="password"
-            label="Senha"
-            type="password"
-            dense
-            outlined
-            prepend-inner-icon="lock"
-            class="q-mb-lg"
-            :disable="carregando"
-            :rules="[val => !!val || 'Obrigatório']"
-          />
+          <q-form @submit.prevent="realizarLogin">
+            <q-input
+              filled
+              v-model="name"
+              label="Nome de Usuário"
+              class="q-mb-md"
+              :dense="$q.screen.lt.md"
+              rounded
+              standout="bg-primary text-white"
+              prepend-inner-icon="person"
+              :disable="carregando"
+              :rules="[val => !!val || 'Obrigatório']"
+            />
+            <q-input
+              filled
+              v-model="password"
+              label="Senha"
+              type="password"
+              class="q-mb-lg"
+              :dense="$q.screen.lt.md"
+              rounded
+              standout="bg-primary text-white"
+              prepend-inner-icon="lock"
+              :disable="carregando"
+              :rules="[val => !!val || 'Obrigatório']"
+            />
 
-          <div class="row justify-center">
             <q-btn
               label="Entrar"
               type="submit"
               color="primary"
+              class="full-width q-mb-md"
               :loading="carregando"
               :disable="carregando"
+              unelevated
+              rounded
+            />
+
+            <div v-if="mensagemErro" class="text-negative text-center q-mt-md">
+              {{ mensagemErro }}
+            </div>
+          </q-form>
+
+          <div class="q-mt-md text-center">
+            <q-btn
+              flat
+              label="Ainda não tem conta? Cadastre-se"
+              @click="$router.push('/register')"
+              class="text-primary"
             />
           </div>
-        </q-form>
-
-        <div v-if="mensagemErro" class="text-negative text-center q-mt-md">
-          {{ mensagemErro }}
         </div>
       </div>
     </q-card>
@@ -58,7 +78,7 @@ import axios from 'axios'
 import { Notify } from 'quasar'
 
 export default {
-  name: 'LoginPage', // Nome multi-word para ESLint
+  name: 'LoginPage',
 
   setup() {
     const router = useRouter()
@@ -114,3 +134,17 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.q-card {
+  border-radius: 16px;
+}
+
+.q-btn:hover {
+  filter: brightness(1.05);
+}
+
+.text-primary {
+  font-weight: 500;
+}
+</style>
