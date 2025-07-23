@@ -45,7 +45,7 @@ export default {
   methods: {
     async carregarProdutos() {
       try {
-        const response = await axios.get('https://validity-controll-uyi3.onrender.com/api/1/productcontrol/products-today')
+        const response = await axios.get('https://validity-controll-uyi3.onrender.com/api/1/productcontrol/products')
         this.produtos = response.data
       } catch (error) {
         console.error(error)
