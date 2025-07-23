@@ -42,6 +42,10 @@
             />
           </div>
         </q-form>
+
+        <div v-if="mensagemErro" class="text-negative text-center q-mt-md">
+          {{ mensagemErro }}
+        </div>
       </div>
     </q-card>
   </q-page>
@@ -54,22 +58,31 @@ import axios from 'axios'
 import { Notify } from 'quasar'
 
 export default {
-  name: 'LoginPage', // nome multi-word obrigatório para ESLint
+  name: 'LoginPage', // nome multi-word para ESLint
 
   setup() {
     const router = useRouter()
     const name = ref('')
     const password = ref('')
     const carregando = ref(false)
+    const mensagemErro = ref('')
 
     async function realizarLogin() {
       carregando.value = true
+      mensagemErro.value = ''
+
       try {
+        const formData = new FormData()
+        formData.append('name', name.value)
+        formData.append('password', password.value)
+
         const response = await axios.post(
-          'https://validity-controll-uyi3.onrender.com/api/1/Auth/login',
+          'https://validity-controll-uyi3.onrender.com/api/1/login',
+          formData,
           {
-            name: name.value,
-            password: password.value
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
           }
         )
 
@@ -81,15 +94,15 @@ export default {
           Notify.create({ type: 'positive', message: 'Login realizado com sucesso!' })
           await router.push('/cadastro/mercearia')
         } else {
-          Notify.create({ type: 'negative', message: 'Token inválido.' })
+          mensagemErro.value = 'Token inválido.'
         }
       } catch (error) {
         if (!error.response) {
-          Notify.create({ type: 'negative', message: 'Erro de conexão. Tente novamente mais tarde.' })
+          mensagemErro.value = 'Erro de conexão. Tente novamente mais tarde.'
         } else if (error.response.status === 401) {
-          Notify.create({ type: 'negative', message: 'Usuário ou senha inválidos.' })
+          mensagemErro.value = 'Usuário ou senha inválidos.'
         } else {
-          Notify.create({ type: 'negative', message: 'Erro ao fazer login.' })
+          mensagemErro.value = 'Erro ao fazer login.'
         }
         console.error(error)
       } finally {
@@ -101,6 +114,7 @@ export default {
       name,
       password,
       carregando,
+      mensagemErro,
       realizarLogin
     }
   }
