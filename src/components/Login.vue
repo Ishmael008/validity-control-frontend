@@ -73,7 +73,7 @@ export default {
 
       try {
         const response = await axios.post(
-          'https://validity-controll-uyi3.onrender.com/api/1/login',
+          'https://validity-controll-uyi3.onrender.com/api/1/Auth/login',
           {
             name: name.value,
             password: password.value
