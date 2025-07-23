@@ -42,59 +42,66 @@
             />
           </div>
         </q-form>
-
-        <div v-if="mensagemErro" class="text-negative text-center q-mt-md">
-          {{ mensagemErro }}
-        </div>
       </div>
     </q-card>
   </q-page>
 </template>
 
 <script>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { Notify } from 'quasar'
 
 export default {
-  name: 'LoginPage',
-  data() {
-    return {
-      name: '',
-      password: '',
-      carregando: false,
-      mensagemErro: ''
-    }
-  },
-  methods: {
-    async realizarLogin() {
-      this.carregando = true
-      this.mensagemErro = ''
+  name: 'LoginPage', // nome multi-word obrigatório para ESLint
 
+  setup() {
+    const router = useRouter()
+    const name = ref('')
+    const password = ref('')
+    const carregando = ref(false)
+
+    async function realizarLogin() {
+      carregando.value = true
       try {
         const response = await axios.post(
           'https://validity-controll-uyi3.onrender.com/api/1/login',
           {
-            name: this.name,
-            password: this.password
+            name: name.value,
+            password: password.value
           }
         )
 
         const token = response.data.token
-        localStorage.setItem('authToken', token)
-        localStorage.setItem('nomeUsuario', this.name)
+        if (token) {
+          localStorage.setItem('authToken', token)
+          localStorage.setItem('nomeUsuario', name.value)
 
-        this.$router.push('/cadastro-produtos')
+          Notify.create({ type: 'positive', message: 'Login realizado com sucesso!' })
+          await router.push('/cadastro/mercearia')
+        } else {
+          Notify.create({ type: 'negative', message: 'Token inválido.' })
+        }
       } catch (error) {
         if (!error.response) {
-          this.mensagemErro = 'Erro de conexão. Tente novamente mais tarde.'
+          Notify.create({ type: 'negative', message: 'Erro de conexão. Tente novamente mais tarde.' })
         } else if (error.response.status === 401) {
-          this.mensagemErro = 'Usuário ou senha inválidos.'
+          Notify.create({ type: 'negative', message: 'Usuário ou senha inválidos.' })
         } else {
-          this.mensagemErro = 'Erro ao fazer login.'
+          Notify.create({ type: 'negative', message: 'Erro ao fazer login.' })
         }
         console.error(error)
       } finally {
-        this.carregando = false
+        carregando.value = false
       }
+    }
+
+    return {
+      name,
+      password,
+      carregando,
+      realizarLogin
     }
   }
 }

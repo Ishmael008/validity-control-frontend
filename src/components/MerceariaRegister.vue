@@ -87,58 +87,70 @@
   </q-page>
 </template>
 
-<script setup>
+<script>
 import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useQuasar } from 'quasar'
 
-const $q = useQuasar()
-const produtos = ref([{ ean: '', name: '', validity: '', description: '' }])
-const nomeUsuario = ref(localStorage.getItem('nomeUsuario') || '')
-const carregando = ref(false)
+export default {
+  name: 'MerceariaRegisterPage',
 
-onMounted(() => {
-  const dadosSalvos = localStorage.getItem(`produtos_${nomeUsuario.value}`)
-  if (dadosSalvos) produtos.value = JSON.parse(dadosSalvos)
-})
+  setup() {
+    const $q = useQuasar()
+    const nomeUsuario = ref(localStorage.getItem('nomeUsuario') || '')
+    const produtos = ref([{ ean: '', name: '', validity: '', description: '' }])
+    const carregando = ref(false)
 
-watch(produtos, (novo) => {
-  localStorage.setItem(`produtos_${nomeUsuario.value}`, JSON.stringify(novo))
-}, { deep: true })
+    onMounted(() => {
+      const dadosSalvos = localStorage.getItem(`produtos_${nomeUsuario.value}`)
+      if (dadosSalvos) produtos.value = JSON.parse(dadosSalvos)
+    })
 
-const adicionarProduto = () => {
-  produtos.value.push({ ean: '', name: '', validity: '', description: '' })
-}
+    watch(produtos, (novo) => {
+      localStorage.setItem(`produtos_${nomeUsuario.value}`, JSON.stringify(novo))
+    }, { deep: true })
 
-const removerProduto = (index) => {
-  produtos.value.splice(index, 1)
-}
+    function adicionarProduto() {
+      produtos.value.push({ ean: '', name: '', validity: '', description: '' })
+    }
 
-const finalizarCadastro = async () => {
-  carregando.value = true
-  try {
-    const token = localStorage.getItem('authToken')
-    await axios.post(
-      'https://validity-controll-uyi3.onrender.com/api/1/productcontrol',
-      produtos.value,
-      { headers: { Authorization: `Bearer ${token}` } }
-    )
-    $q.notify({ type: 'positive', message: 'Cadastro realizado com sucesso!' })
-    produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
-    localStorage.removeItem(`produtos_${nomeUsuario.value}`)
-  } catch (err) {
-    console.error(err)
-    $q.notify({ type: 'negative', message: 'Erro ao cadastrar produtos.' })
-  } finally {
-    carregando.value = false
+    function removerProduto(index) {
+      produtos.value.splice(index, 1)
+    }
+
+    async function finalizarCadastro() {
+      carregando.value = true
+      try {
+        const token = localStorage.getItem('authToken')
+        await axios.post(
+          'https://validity-controll-uyi3.onrender.com/api/1/productcontrol',
+          produtos.value,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+        $q.notify({ type: 'positive', message: 'Cadastro realizado com sucesso!' })
+        produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
+        localStorage.removeItem(`produtos_${nomeUsuario.value}`)
+      } catch (err) {
+        console.error(err)
+        $q.notify({ type: 'negative', message: 'Erro ao cadastrar produtos.' })
+      } finally {
+        carregando.value = false
+      }
+    }
+
+    function irParaProdutosDoDia() {
+      window.location.href = '/#/produtos-do-dia'
+    }
+
+    return {
+      nomeUsuario,
+      produtos,
+      carregando,
+      adicionarProduto,
+      removerProduto,
+      finalizarCadastro,
+      irParaProdutosDoDia
+    }
   }
 }
-
-const irParaProdutosDoDia = () => {
-  window.location.href = '/produtos-do-dia'
-}
 </script>
-
-<style scoped>
-/* estilos opcionais */
-</style>
