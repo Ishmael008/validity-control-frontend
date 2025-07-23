@@ -58,7 +58,7 @@ import axios from 'axios'
 import { Notify } from 'quasar'
 
 export default {
-  name: 'LoginPage', // nome multi-word para ESLint
+  name: 'LoginPage', // Nome multi-word para ESLint
 
   setup() {
     const router = useRouter()
@@ -68,21 +68,15 @@ export default {
     const mensagemErro = ref('')
 
     async function realizarLogin() {
-      carregando.value = true
       mensagemErro.value = ''
+      carregando.value = true
 
       try {
-        const formData = new FormData()
-        formData.append('name', name.value)
-        formData.append('password', password.value)
-
         const response = await axios.post(
           'https://validity-controll-uyi3.onrender.com/api/1/login',
-          formData,
           {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            }
+            name: name.value,
+            password: password.value
           }
         )
 
