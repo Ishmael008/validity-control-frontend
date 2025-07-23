@@ -145,6 +145,6 @@ export default {
 }
 
 .text-primary {
-  font-weight: 500;
+  font-weight: 500;
 }
 </style>
