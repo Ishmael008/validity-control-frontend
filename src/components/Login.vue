@@ -6,7 +6,7 @@
         <div class="col-12 col-md-5 bg-primary text-white flex flex-center column q-pa-xl hidden-xs">
           <div class="text-h4 text-center">Bem-vindo ao Controle de Validade</div>
           <div class="text-subtitle1 text-center q-mt-sm">
-            Gerencie seus produtos com praticidade
+            Gerencie os produtos com praticidade
           </div>
         </div>
 

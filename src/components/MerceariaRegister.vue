@@ -1,14 +1,23 @@
 <template>
-  <q-page class="bg-grey-1" style="min-height: 100vh;">
-    <div class="q-pa-md q-gutter-sm row justify-between items-center" style="max-width: 600px; margin: 0 auto;">
-      <div class="text-subtitle1">Olá, {{ nomeUsuario }} 👋</div>
-      <q-btn color="primary" label="Ver Lista de Produtos" @click="irParaProdutosDoDia" :disable="carregando" />
+  <q-page class="bg-grey-1 q-pa-sm" style="min-height: 100vh;">
+    <div class="q-px-md q-pt-md q-gutter-sm row justify-between items-center" style="max-width: 600px; margin: 0 auto;">
+      <div class="text-subtitle1">
+        <span class="text-primary">Olá,</span> {{ nomeUsuario }} 👋
+      </div>
+      <q-btn
+        color="primary"
+        label="Ver Lista de Produtos"
+        @click="irParaProdutosDoDia"
+        :disable="carregando"
+        class="q-mt-xs"
+        size="sm"
+      />
     </div>
 
     <div class="flex flex-center" style="min-height: calc(100vh - 180px);">
       <q-card class="q-pa-md shadow-10" style="width: 100%; max-width: 600px;">
         <q-card-section>
-          <div class="text-h5 text-primary q-mb-md">Cadastro de Produtos</div>
+          <div class="text-h5 text-primary q-mb-md text-center">Cadastro de Produtos</div>
 
           <q-form @submit.prevent="finalizarCadastro">
             <div
@@ -103,7 +112,13 @@ export default {
 
     onMounted(() => {
       const dadosSalvos = localStorage.getItem(`produtos_${nomeUsuario.value}`)
-      if (dadosSalvos) produtos.value = JSON.parse(dadosSalvos)
+      if (dadosSalvos) {
+        try {
+          produtos.value = JSON.parse(dadosSalvos)
+        } catch (e) {
+          console.error('Erro ao carregar dados salvos:', e)
+        }
+      }
     })
 
     watch(produtos, (novo) => {
@@ -125,14 +140,19 @@ export default {
         await axios.post(
           'https://validity-controll-uyi3.onrender.com/api/1/productcontrol',
           produtos.value,
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
         )
-        $q.notify({ type: 'positive', message: 'Cadastro realizado com sucesso!' })
+        $q.notify({ color: 'positive', message: 'Cadastro realizado com sucesso!' })
         produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
         localStorage.removeItem(`produtos_${nomeUsuario.value}`)
       } catch (err) {
         console.error(err)
-        $q.notify({ type: 'negative', message: 'Erro ao cadastrar produtos.' })
+        $q.notify({ color: 'negative', message: 'Erro ao cadastrar produtos.' })
       } finally {
         carregando.value = false
       }
@@ -154,3 +174,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.q-page {
+  max-width: 800px;
+  margin: auto;
+}
+</style>
