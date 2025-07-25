@@ -1,98 +1,32 @@
 <template>
-  <q-page class="bg-grey-1 q-pa-sm" style="min-height: 100vh;">
-    <div class="q-px-md q-pt-md q-gutter-sm row justify-between items-center" style="max-width: 600px; margin: 0 auto;">
-      <div class="text-subtitle1">
-        <span class="text-primary">Olá,</span> {{ nomeUsuario }} 👋
-      </div>
-      <q-btn
-        color="primary"
-        label="Ver Lista de Produtos"
-        @click="irParaProdutosDoDia"
-        :disable="carregando"
-        class="q-mt-xs"
-        size="sm"
-      />
-    </div>
+  <q-page class="q-pa-md">
+    <div class="text-h5 text-center q-mb-lg">Cadastro de Produtos - Mercearia</div>
 
-    <div class="flex flex-center" style="min-height: calc(100vh - 180px);">
-      <q-card class="q-pa-md shadow-10" style="width: 100%; max-width: 600px;">
-        <q-card-section>
-          <div class="text-h5 text-primary q-mb-md text-center">Cadastro de Produtos</div>
+    <q-btn label="Finalizar o cadastro" color="primary" @click="finalizarCadastro" class="q-mb-md" :loading="carregando" />
+    <q-btn label="Produtos do dia" color="secondary" @click="irParaProdutosDoDia" class="q-ml-sm q-mb-md" />
 
-          <q-form @submit.prevent="finalizarCadastro">
-            <div
-              v-for="(produto, index) in produtos"
-              :key="produto.ean || index"
-              class="q-mb-md q-pa-md bg-white rounded-borders"
-            >
-              <q-input
-                v-model="produto.ean"
-                label="Código EAN"
-                dense outlined
-                prepend-inner-icon="qr_code"
-                :rules="[val => !!val || 'Obrigatório']"
-                :disable="carregando"
-              />
-              <q-input
-                v-model="produto.name"
-                label="Nome do Produto"
-                dense outlined
-                prepend-inner-icon="label"
-                :rules="[val => !!val || 'Obrigatório']"
-                :disable="carregando"
-              />
-              <q-input
-                v-model="produto.validity"
-                label="Data de Validade"
-                type="date"
-                dense outlined
-                prepend-inner-icon="event"
-                :rules="[val => !!val || 'Obrigatório']"
-                :disable="carregando"
-              />
-              <q-input
-                v-model="produto.description"
-                label="Descrição"
-                type="textarea"
-                dense outlined
-                prepend-inner-icon="description"
-                :disable="carregando"
-              />
+    <q-separator class="q-my-md" />
 
-              <div class="q-gutter-sm q-mt-sm">
-                <q-btn
-                  label="Remover"
-                  color="negative"
-                  dense flat
-                  @click="removerProduto(index)"
-                  :disable="carregando"
-                />
-              </div>
-              <q-separator class="q-my-md" />
-            </div>
+    <div v-for="(produto, index) in produtos" :key="index" class="q-mb-lg">
+      <q-card flat bordered class="q-pa-md">
+        <q-input v-model="produto.ean"
+                 label="EAN"
+                 inputmode="numeric"
+                 type="text"
+                 @input="produto.ean = produto.ean.replace(/[^0-9]/g, '')"
+                 maxlength="13"
+                 filled
+                 class="q-mb-sm" />
 
-            <div class="q-my-md flex justify-center">
-              <q-btn
-                label="Adicionar Produto"
-                color="primary"
-                @click="adicionarProduto"
-                :disable="carregando"
-              />
-            </div>
+        <q-input v-model="produto.name" label="Nome" filled class="q-mb-sm" />
+        <q-input v-model="produto.validity" label="Validade" type="date" filled class="q-mb-sm" />
+        <q-input v-model="produto.description" label="Descrição" filled class="q-mb-sm" />
 
-            <div class="q-mt-lg flex justify-center">
-              <q-btn
-                label="Finalizar Cadastro"
-                color="positive"
-                type="submit"
-                :loading="carregando"
-                :disable="carregando"
-              />
-            </div>
-          </q-form>
-        </q-card-section>
+        <q-btn label="Remover" color="negative" @click="removerProduto(index)" v-if="produtos.length > 1" />
       </q-card>
     </div>
+
+    <q-btn label="Adicionar Produto" color="primary" outline @click="adicionarProduto" />
   </q-page>
 </template>
 
@@ -110,6 +44,7 @@ export default {
     const produtos = ref([{ ean: '', name: '', validity: '', description: '' }])
     const carregando = ref(false)
 
+    // Recuperar produtos salvos localmente ao carregar a página
     onMounted(() => {
       const dadosSalvos = localStorage.getItem(`produtos_${nomeUsuario.value}`)
       if (dadosSalvos) {
@@ -121,6 +56,7 @@ export default {
       }
     })
 
+    // Salvar progresso local automaticamente
     watch(produtos, (novo) => {
       localStorage.setItem(`produtos_${nomeUsuario.value}`, JSON.stringify(novo))
     }, { deep: true })
@@ -137,9 +73,14 @@ export default {
       carregando.value = true
       try {
         const token = localStorage.getItem('authToken')
+
+        const payload = {
+          produtos: produtos.value
+        }
+
         await axios.post(
           'https://validity-controll-uyi3.onrender.com/api/1/ProductControl',
-          produtos.value,
+          payload,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -147,6 +88,7 @@ export default {
             }
           }
         )
+
         $q.notify({ color: 'positive', message: 'Cadastro realizado com sucesso!' })
         produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
         localStorage.removeItem(`produtos_${nomeUsuario.value}`)
