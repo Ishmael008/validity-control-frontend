@@ -113,7 +113,6 @@ export default {
     const carregando = ref(false)
     const chaveStorage = `produtos_${nomeUsuario.value}`
 
-    // Carrega produtos salvos no localStorage
     onMounted(() => {
       const dadosSalvos = localStorage.getItem(chaveStorage)
       if (dadosSalvos) {
@@ -125,8 +124,7 @@ export default {
       }
     })
 
-    // Salva os dados sempre que houver mudança
-    watch(produtos, novo => {
+    watch(produtos, (novo) => {
       localStorage.setItem(chaveStorage, JSON.stringify(novo))
     }, { deep: true })
 
@@ -140,24 +138,24 @@ export default {
 
     async function finalizarCadastro() {
       carregando.value = true
+      let sucessoTotal = true
+      let enviados = 0
 
       try {
         const token = localStorage.getItem('authToken')
         const url = 'https://validity-controll-uyi3.onrender.com/api/1/productcontrol'
-        let produtosEnviados = 0
-        let sucessoTotal = true
 
         for (const produto of produtos.value) {
           if (!produto.ean || !produto.name || !produto.validity) {
-            console.warn('Produto incompleto ignorado:', produto)
+            console.warn('Produto ignorado por dados incompletos:', produto)
             continue
           }
 
           const payload = {
-            eanOfProduct: produto.ean,
-            nameOfProduct: produto.name,
+            eanOfProduct: String(produto.ean).trim(),
+            nameOfProduct: String(produto.name).trim(),
             validity: new Date(produto.validity).toISOString(),
-            description: produto.description || ''
+            description: String(produto.description || '').trim()
           }
 
           console.log('Enviando produto:', payload)
@@ -169,11 +167,11 @@ export default {
                 'Content-Type': 'application/json'
               }
             })
-            produtosEnviados++
+            enviados++
           } catch (err) {
             sucessoTotal = false
             console.error('Erro ao enviar produto:', produto)
-            console.error('Detalhes do erro:', err.response?.data?.errors || err.message)
+            console.error('Detalhes:', err.response?.data?.errors || err.message)
 
             $q.notify({
               color: 'negative',
@@ -182,8 +180,8 @@ export default {
           }
         }
 
-        if (produtosEnviados === 0) {
-          $q.notify({ color: 'warning', message: 'Nenhum produto cadastrado. Verifique os dados preenchidos.' })
+        if (enviados === 0) {
+          $q.notify({ color: 'warning', message: 'Nenhum produto cadastrado. Verifique os campos obrigatórios.' })
         } else if (sucessoTotal) {
           $q.notify({ color: 'positive', message: '✅ Todos os produtos cadastrados com sucesso!' })
           produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
@@ -194,7 +192,7 @@ export default {
 
       } catch (err) {
         console.error('Erro global:', err)
-        $q.notify({ color: 'negative', message: 'Erro inesperado durante cadastro.' })
+        $q.notify({ color: 'negative', message: 'Erro inesperado durante o cadastro.' })
       } finally {
         carregando.value = false
       }
