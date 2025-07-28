@@ -158,7 +158,7 @@ export default {
           }
 
           await axios.post(
-            'https://validity-controll-uyi3.onrender.com/api/1/productcontrol',
+            'https://validity-controll-uyi3.onrender.com/api/1/`ProductControl',
             payload,
             {
               headers: {
