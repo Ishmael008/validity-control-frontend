@@ -20,11 +20,7 @@
           <div class="text-h5 text-primary q-mb-md text-center">Cadastro de Produtos</div>
 
           <q-form @submit.prevent="finalizarCadastro">
-            <div
-              v-for="(produto, index) in produtos"
-              :key="index"
-              class="q-mb-md q-pa-md bg-white rounded-borders"
-            >
+            <div v-for="(produto, index) in produtos" :key="index" class="q-mb-md q-pa-md bg-white rounded-borders">
               <q-input
                 v-model="produto.ean"
                 label="Código EAN"
@@ -83,6 +79,7 @@
                 color="primary"
                 @click="adicionarProduto"
                 :disable="carregando"
+                icon="add"
               />
             </div>
 
@@ -116,6 +113,7 @@ export default {
     const carregando = ref(false)
     const chaveStorage = `produtos_${nomeUsuario.value}`
 
+    // Carrega produtos salvos no localStorage
     onMounted(() => {
       const dadosSalvos = localStorage.getItem(chaveStorage)
       if (dadosSalvos) {
@@ -127,6 +125,7 @@ export default {
       }
     })
 
+    // Salva os dados sempre que houver mudança
     watch(produtos, novo => {
       localStorage.setItem(chaveStorage, JSON.stringify(novo))
     }, { deep: true })
@@ -145,9 +144,10 @@ export default {
       try {
         const token = localStorage.getItem('authToken')
         const url = 'https://validity-controll-uyi3.onrender.com/api/1/productcontrol'
+        let produtosEnviados = 0
+        let sucessoTotal = true
 
         for (const produto of produtos.value) {
-          // Validação antes do envio
           if (!produto.ean || !produto.name || !produto.validity) {
             console.warn('Produto incompleto ignorado:', produto)
             continue
@@ -160,6 +160,8 @@ export default {
             description: produto.description || ''
           }
 
+          console.log('Enviando produto:', payload)
+
           try {
             await axios.post(url, payload, {
               headers: {
@@ -167,21 +169,28 @@ export default {
                 'Content-Type': 'application/json'
               }
             })
+            produtosEnviados++
           } catch (err) {
+            sucessoTotal = false
             console.error('Erro ao enviar produto:', produto)
             console.error('Detalhes do erro:', err.response?.data?.errors || err.message)
 
             $q.notify({
               color: 'negative',
-              message: 'Erro ao cadastrar produto: ' + (err.response?.data?.title || 'Verifique os dados')
+              message: 'Erro ao cadastrar: ' + (err.response?.data?.title || 'Verifique os dados')
             })
           }
         }
 
-        $q.notify({ color: 'positive', message: 'Todos os produtos válidos foram cadastrados!' })
-
-        produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
-        localStorage.removeItem(chaveStorage)
+        if (produtosEnviados === 0) {
+          $q.notify({ color: 'warning', message: 'Nenhum produto cadastrado. Verifique os dados preenchidos.' })
+        } else if (sucessoTotal) {
+          $q.notify({ color: 'positive', message: '✅ Todos os produtos cadastrados com sucesso!' })
+          produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
+          localStorage.removeItem(chaveStorage)
+        } else {
+          $q.notify({ color: 'warning', message: '⚠️ Alguns produtos falharam no cadastro.' })
+        }
 
       } catch (err) {
         console.error('Erro global:', err)
