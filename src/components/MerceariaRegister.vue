@@ -1,12 +1,10 @@
 <template>
   <q-page class="bg-grey-1" style="min-height: 100vh;">
-    <!-- Botões no topo -->
     <div class="q-pa-md q-gutter-sm row justify-between" style="max-width: 600px; margin: 0 auto;">
       <q-btn color="positive" label="Finalizar o cadastro" @click="finalizarCadastro" />
       <q-btn color="primary" label="Produtos do dia" @click="irParaProdutosDoDia" />
     </div>
 
-    <!-- Formulário para cadastrar vários produtos -->
     <div class="flex flex-center" style="min-height: calc(100vh - 180px);">
       <q-card class="q-pa-md shadow-10" style="width: 100%; max-width: 600px;">
         <q-card-section>
@@ -97,30 +95,30 @@ export default {
     },
     async finalizarCadastro() {
       try {
-        // Validação básica
         for (const p of this.produtos) {
           if (!p.ean || !p.name || !p.validity) {
             Notify.create({ color: 'negative', message: 'Preencha todos os campos obrigatórios!' })
             return
           }
+
+          // ⏳ Montando payload com campo "viewModel"
+          const payload = {
+            viewModel: {
+              ean: p.ean,
+              name: p.name,
+              validity: p.validity.slice(0, 10), // "YYYY-MM-DD"
+              description: p.description
+            }
+          }
+
+          await axios.post('https://validity-controll-uyi3.onrender.com/api/1/productcontrol', payload)
+
+          Notify.create({
+            color: 'positive',
+            message: `Produto "${p.name}" cadastrado com sucesso!`
+          })
         }
 
-        // Corrigindo nomes de campos para o backend
-        const payloadCorrigido = this.produtos.map(p => ({
-          ean: p.ean,
-          name: p.name,
-          validity: p.validity,
-          description: p.description
-        }))
-
-        await axios.post('https://validity-controll-uyi3.onrender.com/api/1/productcontrol', payloadCorrigido)
-
-        Notify.create({
-          color: 'positive',
-          message: 'Produtos cadastrados com sucesso!'
-        })
-
-        // Resetar formulário
         this.produtos = [{ ean: '', name: '', validity: '', description: '' }]
       } catch (error) {
         console.error('❌ Erro ao enviar produto:', error)
