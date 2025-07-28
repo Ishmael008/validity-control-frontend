@@ -165,13 +165,13 @@ export default {
 
         for (const produto of produtos.value) {
           const payload = {
-            eanOfProduct: produto.ean.trim(),
-            nameOfProduct: produto.name.trim(),
+            ean: produto.ean.trim(),
+            name: produto.name.trim(),
             validity: new Date(produto.validity).toISOString(),
             description: produto.description ? produto.description.trim() : ''
           }
 
-          console.log('Enviando payload ajustado:', payload)
+          console.log('Enviando payload:', payload)
 
           await axios.post(
             'https://validity-controll-uyi3.onrender.com/api/1/productcontrol',
@@ -208,6 +208,7 @@ export default {
   }
 }
 </script>
+
 
 <style scoped>
 .q-page {
