@@ -1,10 +1,12 @@
 <template>
   <q-page class="bg-grey-1" style="min-height: 100vh;">
+    <!-- Botões -->
     <div class="q-pa-md q-gutter-sm row justify-between" style="max-width: 600px; margin: 0 auto;">
       <q-btn color="positive" label="Finalizar o cadastro" @click="finalizarCadastro" />
       <q-btn color="primary" label="Produtos do dia" @click="irParaProdutosDoDia" />
     </div>
 
+    <!-- Formulário -->
     <div class="flex flex-center" style="min-height: calc(100vh - 180px);">
       <q-card class="q-pa-md shadow-10" style="width: 100%; max-width: 600px;">
         <q-card-section>
@@ -17,7 +19,7 @@
               class="q-mb-md q-pa-md bg-white rounded-borders"
             >
               <q-input
-                v-model="produto.ean"
+                v-model="produto.eanOfProduct"
                 label="Código EAN"
                 dense
                 outlined
@@ -26,7 +28,7 @@
                 :rules="[val => !!val || 'Obrigatório']"
               />
               <q-input
-                v-model="produto.name"
+                v-model="produto.nameOfProduct"
                 label="Nome do Produto"
                 dense
                 outlined
@@ -52,7 +54,9 @@
                 outlined
                 class="q-mb-sm"
                 prepend-inner-icon="description"
+                :rules="[val => !!val || 'Obrigatório']"
               />
+
               <div class="q-gutter-sm q-mt-sm">
                 <q-btn color="negative" dense flat @click="removerProduto(index)" label="Remover" />
               </div>
@@ -82,13 +86,13 @@ export default {
   data() {
     return {
       produtos: [
-        { ean: '', name: '', validity: '', description: '' }
+        { eanOfProduct: '', nameOfProduct: '', validity: '', description: '' }
       ]
     }
   },
   methods: {
     adicionarProduto() {
-      this.produtos.push({ ean: '', name: '', validity: '', description: '' })
+      this.produtos.push({ eanOfProduct: '', nameOfProduct: '', validity: '', description: '' })
     },
     removerProduto(index) {
       this.produtos.splice(index, 1)
@@ -96,17 +100,17 @@ export default {
     async finalizarCadastro() {
       try {
         for (const p of this.produtos) {
-          if (!p.ean || !p.name || !p.validity) {
+          if (!p.eanOfProduct || !p.nameOfProduct || !p.validity || !p.description) {
             Notify.create({ color: 'negative', message: 'Preencha todos os campos obrigatórios!' })
             return
           }
 
-          // ⏳ Montando payload com campo "viewModel"
+          // 🧾 Payload estruturado com campo viewModel e nomes corretos
           const payload = {
             viewModel: {
-              ean: p.ean,
-              name: p.name,
-              validity: p.validity.slice(0, 10), // "YYYY-MM-DD"
+              eanOfProduct: p.eanOfProduct,
+              nameOfProduct: p.nameOfProduct,
+              validity: p.validity.slice(0, 10), // formato "YYYY-MM-DD"
               description: p.description
             }
           }
@@ -115,11 +119,11 @@ export default {
 
           Notify.create({
             color: 'positive',
-            message: `Produto "${p.name}" cadastrado com sucesso!`
+            message: `Produto "${p.nameOfProduct}" cadastrado com sucesso!`
           })
         }
 
-        this.produtos = [{ ean: '', name: '', validity: '', description: '' }]
+        this.produtos = [{ eanOfProduct: '', nameOfProduct: '', validity: '', description: '' }]
       } catch (error) {
         console.error('❌ Erro ao enviar produto:', error)
         console.error('🧾 Detalhes:', JSON.stringify(error.response?.data, null, 2))
