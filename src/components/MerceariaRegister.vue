@@ -31,8 +31,7 @@
                 dense
                 outlined
                 prepend-inner-icon="qr_code"
-                inputmode="numeric"
-                pattern="\d*"
+                type="text"
                 :rules="[val => !!val || 'Obrigatório']"
                 :disable="carregando"
               />
@@ -116,7 +115,6 @@ export default {
     const nomeUsuario = ref(localStorage.getItem('nomeUsuario') || '')
     const produtos = ref([{ ean: '', name: '', validity: '', description: '' }])
     const carregando = ref(false)
-
     const chaveStorage = `produtos_${nomeUsuario.value}`
 
     onMounted(() => {
@@ -147,11 +145,12 @@ export default {
       try {
         const token = localStorage.getItem('authToken')
         await axios.post(
-          'https://validity-controll-uyi3.onrender.com/api/1/ProductControl',
+          'https://validity-controll-uyi3.onrender.com/api/1/productcontrol',
           produtos.value,
           {
             headers: {
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
             }
           }
         )
@@ -160,7 +159,8 @@ export default {
         localStorage.removeItem(chaveStorage)
       } catch (err) {
         console.error(err)
-        $q.notify({ color: 'negative', message: 'Erro ao cadastrar produtos.' })
+        const msg = err.response?.data?.title || 'Erro ao cadastrar produtos.'
+        $q.notify({ color: 'negative', message: msg })
       } finally {
         carregando.value = false
       }
