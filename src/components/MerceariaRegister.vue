@@ -2,7 +2,11 @@
   <q-page class="bg-grey-1 q-pa-sm" style="min-height: 100vh;">
     <div class="q-pa-md" style="max-width: 600px; margin: 0 auto;">
       <q-form @submit.prevent="finalizarCadastro" class="q-gutter-md">
-        <div v-for="(produto, index) in produtos" :key="index" class="q-mb-md q-pa-md bg-white rounded-borders">
+        <div
+          v-for="(produto, index) in produtos"
+          :key="index"
+          class="q-mb-md q-pa-md bg-white rounded-borders"
+        >
           <q-input
             v-model="produto.ean"
             label="Código EAN"
@@ -129,8 +133,8 @@ export default {
 
         for (const produto of produtos.value) {
           const payload = {
-            eanOfProduct: produto.ean.trim(),
-            nameOfProduct: produto.name.trim(),
+            ean: produto.ean.trim(),
+            name: produto.name.trim(),
             validity: new Date(produto.validity).toISOString(),
             description: produto.description ? produto.description.trim() : ''
           }
@@ -150,7 +154,6 @@ export default {
         }
 
         $q.notify({ type: 'positive', message: 'Produtos cadastrados com sucesso!' })
-
         produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
         localStorage.removeItem(chaveStorage)
 
