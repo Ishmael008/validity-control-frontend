@@ -127,7 +127,7 @@ export default {
       }
     })
 
-    watch(produtos, (novo) => {
+    watch(produtos, novo => {
       localStorage.setItem(chaveStorage, JSON.stringify(novo))
     }, { deep: true })
 
@@ -144,40 +144,48 @@ export default {
 
       try {
         const token = localStorage.getItem('authToken')
+        const url = 'https://validity-controll-uyi3.onrender.com/api/1/productcontrol'
 
         for (const produto of produtos.value) {
+          // Validação antes do envio
           if (!produto.ean || !produto.name || !produto.validity) {
-            continue // ignora produtos incompletos
+            console.warn('Produto incompleto ignorado:', produto)
+            continue
           }
 
           const payload = {
             eanOfProduct: produto.ean,
             nameOfProduct: produto.name,
             validity: new Date(produto.validity).toISOString(),
-            description: produto.description
+            description: produto.description || ''
           }
 
-          await axios.post(
-            'https://validity-controll-uyi3.onrender.com/api/1/ProductControl',
-            payload,
-            {
+          try {
+            await axios.post(url, payload, {
               headers: {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
               }
-            }
-          )
+            })
+          } catch (err) {
+            console.error('Erro ao enviar produto:', produto)
+            console.error('Detalhes do erro:', err.response?.data?.errors || err.message)
+
+            $q.notify({
+              color: 'negative',
+              message: 'Erro ao cadastrar produto: ' + (err.response?.data?.title || 'Verifique os dados')
+            })
+          }
         }
 
-        $q.notify({ color: 'positive', message: 'Todos os produtos cadastrados com sucesso!' })
+        $q.notify({ color: 'positive', message: 'Todos os produtos válidos foram cadastrados!' })
 
         produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
         localStorage.removeItem(chaveStorage)
 
       } catch (err) {
-        console.error('❌ Erro no cadastro:', err.response?.data || err.message)
-        const msg = err.response?.data?.title || 'Erro ao cadastrar produtos.'
-        $q.notify({ color: 'negative', message: msg })
+        console.error('Erro global:', err)
+        $q.notify({ color: 'negative', message: 'Erro inesperado durante cadastro.' })
       } finally {
         carregando.value = false
       }
