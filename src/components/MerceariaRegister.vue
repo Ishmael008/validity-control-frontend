@@ -21,76 +21,28 @@
 
           <q-form @submit.prevent="finalizarCadastro">
             <div v-for="(produto, index) in produtos" :key="index" class="q-mb-md q-pa-md bg-white rounded-borders">
-              <q-input
-                v-model="produto.ean"
-                label="Código EAN"
-                dense
-                outlined
-                prepend-inner-icon="qr_code"
-                type="text"
-                :rules="[val => !!val || 'Obrigatório']"
-                :disable="carregando"
-              />
-              <q-input
-                v-model="produto.name"
-                label="Nome do Produto"
-                dense
-                outlined
-                prepend-inner-icon="label"
-                :rules="[val => !!val || 'Obrigatório']"
-                :disable="carregando"
-              />
-              <q-input
-                v-model="produto.validity"
-                label="Data de Validade"
-                type="date"
-                dense
-                outlined
-                prepend-inner-icon="event"
-                :rules="[val => !!val || 'Obrigatório']"
-                :disable="carregando"
-              />
-              <q-input
-                v-model="produto.description"
-                label="Descrição"
-                type="textarea"
-                dense
-                outlined
-                prepend-inner-icon="description"
-                :disable="carregando"
-              />
+              <q-input v-model="produto.ean" label="Código EAN" dense outlined prepend-inner-icon="qr_code"
+                :rules="[val => !!val || 'Obrigatório']" :disable="carregando" />
+              <q-input v-model="produto.name" label="Nome do Produto" dense outlined prepend-inner-icon="label"
+                :rules="[val => !!val || 'Obrigatório']" :disable="carregando" />
+              <q-input v-model="produto.validity" label="Data de Validade" type="date" dense outlined
+                prepend-inner-icon="event" :rules="[val => !!val || 'Obrigatório']" :disable="carregando" />
+              <q-input v-model="produto.description" label="Descrição" type="textarea" dense outlined
+                prepend-inner-icon="description" :disable="carregando" />
 
               <div class="q-gutter-sm q-mt-sm">
-                <q-btn
-                  label="Remover"
-                  color="negative"
-                  dense
-                  flat
-                  @click="removerProduto(index)"
-                  :disable="carregando"
-                />
+                <q-btn label="Remover" color="negative" dense flat @click="removerProduto(index)"
+                  :disable="carregando" />
               </div>
               <q-separator class="q-my-md" />
             </div>
 
             <div class="q-my-md flex justify-center">
-              <q-btn
-                label="Adicionar Produto"
-                color="primary"
-                @click="adicionarProduto"
-                :disable="carregando"
-                icon="add"
-              />
+              <q-btn label="Adicionar Produto" color="primary" @click="adicionarProduto" :disable="carregando" icon="add" />
             </div>
 
             <div class="q-mt-lg flex justify-center">
-              <q-btn
-                label="Finalizar Cadastro"
-                color="positive"
-                type="submit"
-                :loading="carregando"
-                :disable="carregando"
-              />
+              <q-btn label="Finalizar Cadastro" color="positive" type="submit" :loading="carregando" :disable="carregando" />
             </div>
           </q-form>
         </q-card-section>
@@ -100,65 +52,65 @@
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
-import axios from 'axios'
-import { useQuasar } from 'quasar'
+import { ref, onMounted, watch } from 'vue';
+import axios from 'axios';
+import { useQuasar } from 'quasar';
 
 export default {
   name: 'MerceariaRegisterPage',
   setup() {
-    const $q = useQuasar()
-    const nomeUsuario = ref(localStorage.getItem('nomeUsuario') || '')
-    const produtos = ref([{ ean: '', name: '', validity: '', description: '' }])
-    const carregando = ref(false)
-    const chaveStorage = `produtos_${nomeUsuario.value}`
+    const $q = useQuasar();
+    const nomeUsuario = ref(localStorage.getItem('nomeUsuario') || '');
+    const produtos = ref([{ ean: '', name: '', validity: '', description: '' }]);
+    const carregando = ref(false);
+    const chaveStorage = `produtos_${nomeUsuario.value}`;
 
     onMounted(() => {
-      const dadosSalvos = localStorage.getItem(chaveStorage)
+      const dadosSalvos = localStorage.getItem(chaveStorage);
       if (dadosSalvos) {
         try {
-          produtos.value = JSON.parse(dadosSalvos)
+          produtos.value = JSON.parse(dadosSalvos);
         } catch (e) {
-          console.error('Erro ao carregar dados salvos:', e)
+          console.error('Erro ao carregar dados salvos:', e);
         }
       }
-    })
+    });
 
-    watch(produtos, (novo) => {
-      localStorage.setItem(chaveStorage, JSON.stringify(novo))
-    }, { deep: true })
+    watch(produtos, novo => {
+      localStorage.setItem(chaveStorage, JSON.stringify(novo));
+    }, { deep: true });
 
     function adicionarProduto() {
-      produtos.value.push({ ean: '', name: '', validity: '', description: '' })
+      produtos.value.push({ ean: '', name: '', validity: '', description: '' });
     }
 
     function removerProduto(index) {
-      produtos.value.splice(index, 1)
+      produtos.value.splice(index, 1);
     }
 
     async function finalizarCadastro() {
-      carregando.value = true
-      let sucessoTotal = true
-      let enviados = 0
+      carregando.value = true;
+      let sucessoTotal = true;
+      let enviados = 0;
 
       try {
-        const token = localStorage.getItem('authToken')
-        const url = 'https://validity-controll-uyi3.onrender.com/api/1/productcontrol'
+        const token = localStorage.getItem('authToken');
+        const url = 'https://validity-controll-uyi3.onrender.com/api/1/productcontrol';
 
         for (const produto of produtos.value) {
           if (!produto.ean || !produto.name || !produto.validity) {
-            console.warn('Produto ignorado por dados incompletos:', produto)
-            continue
+            console.warn('Ignorado: dados incompletos', produto);
+            continue;
           }
 
           const payload = {
-            eanOfProduct: String(produto.ean).trim(),
-            nameOfProduct: String(produto.name).trim(),
+            eanOfProduct: produto.ean.toString(),
+            nameOfProduct: produto.name.toString(),
             validity: new Date(produto.validity).toISOString(),
-            description: String(produto.description || '').trim()
-          }
+            description: (produto.description || '').toString()
+          };
 
-          console.log('Enviando produto:', payload)
+          console.log('⏳ Enviando:', payload);
 
           try {
             await axios.post(url, payload, {
@@ -166,40 +118,39 @@ export default {
                 Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
               }
-            })
-            enviados++
+            });
+            enviados++;
           } catch (err) {
-            sucessoTotal = false
-            console.error('Erro ao enviar produto:', produto)
-            console.error('Detalhes:', err.response?.data?.errors || err.message)
-
+            sucessoTotal = false;
+            console.error('❌ Erro ao enviar produto:', produto);
+            console.error('🧾 Detalhes:', err.response?.data?.errors || err.message);
             $q.notify({
               color: 'negative',
               message: 'Erro ao cadastrar: ' + (err.response?.data?.title || 'Verifique os dados')
-            })
+            });
           }
         }
 
         if (enviados === 0) {
-          $q.notify({ color: 'warning', message: 'Nenhum produto cadastrado. Verifique os campos obrigatórios.' })
+          $q.notify({ color: 'warning', message: 'Nenhum produto cadastrado. Verifique os campos obrigatórios.' });
         } else if (sucessoTotal) {
-          $q.notify({ color: 'positive', message: '✅ Todos os produtos cadastrados com sucesso!' })
-          produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
-          localStorage.removeItem(chaveStorage)
+          $q.notify({ color: 'positive', message: '✅ Todos os produtos cadastrados com sucesso!' });
+          produtos.value = [{ ean: '', name: '', validity: '', description: '' }];
+          localStorage.removeItem(chaveStorage);
         } else {
-          $q.notify({ color: 'warning', message: '⚠️ Alguns produtos falharam no cadastro.' })
+          $q.notify({ color: 'warning', message: '⚠️ Alguns produtos falharam no cadastro.' });
         }
 
       } catch (err) {
-        console.error('Erro global:', err)
-        $q.notify({ color: 'negative', message: 'Erro inesperado durante o cadastro.' })
+        console.error('Erro global:', err);
+        $q.notify({ color: 'negative', message: 'Erro inesperado durante o cadastro.' });
       } finally {
-        carregando.value = false
+        carregando.value = false;
       }
     }
 
     function irParaProdutosDoDia() {
-      window.location.href = '/#/produtos-do-dia'
+      window.location.href = '/#/produtos-do-dia';
     }
 
     return {
@@ -210,14 +161,7 @@ export default {
       removerProduto,
       finalizarCadastro,
       irParaProdutosDoDia
-    }
+    };
   }
-}
+};
 </script>
-
-<style scoped>
-.q-page {
-  max-width: 800px;
-  margin: auto;
-}
-</style>
