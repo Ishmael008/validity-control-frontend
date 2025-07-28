@@ -141,12 +141,26 @@ export default {
     }
 
     async function finalizarCadastro() {
+      const produtosValidos = produtos.value.filter(p =>
+        p.ean && p.name && p.validity
+      )
+
+      if (produtosValidos.length === 0) {
+        $q.notify({ color: 'warning', message: 'Preencha todos os campos obrigatórios.' })
+        return
+      }
+
       carregando.value = true
+
       try {
         const token = localStorage.getItem('authToken')
+
+        // Log para debug
+        console.log('🔎 Enviando para backend:', produtosValidos)
+
         await axios.post(
           'https://validity-controll-uyi3.onrender.com/api/1/productcontrol',
-          produtos.value,
+          produtosValidos,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -154,12 +168,14 @@ export default {
             }
           }
         )
+
         $q.notify({ color: 'positive', message: 'Cadastro realizado com sucesso!' })
         produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
         localStorage.removeItem(chaveStorage)
+
       } catch (err) {
-        console.error(err)
-        const msg = err.response?.data?.title || 'Erro ao cadastrar produtos.'
+        console.error('❌ Erro no cadastro:', err)
+        const msg = err.response?.data?.title || err.message || 'Erro ao cadastrar produtos.'
         $q.notify({ color: 'negative', message: msg })
       } finally {
         carregando.value = false
@@ -189,4 +205,3 @@ export default {
   margin: auto;
 }
 </style>
-

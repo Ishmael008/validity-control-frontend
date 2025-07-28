@@ -16,6 +16,14 @@
             <div><strong>Validade:</strong> {{ formatDate(produto.validity) }}</div>
             <div><strong>Vence em:</strong> {{ produto.daysToMatury ?? 'Indefinido' }} dia(s)</div>
             <div><strong>Descrição:</strong> {{ produto.description || 'Sem descrição' }}</div>
+
+            <q-btn
+              dense
+              color="negative"
+              label="Excluir"
+              class="q-mt-sm"
+              @click="excluirProduto(produto.eanOfProduct)"
+            />
           </div>
         </div>
 
@@ -53,6 +61,18 @@ export default {
           color: 'negative',
           message: 'Erro ao buscar produtos.'
         })
+      }
+    },
+    async excluirProduto(ean) {
+      try {
+        await axios.delete(`https://validity-controll-uyi3.onrender.com/api/1/productcontrol`, {
+          params: { ean }
+        })
+        Notify.create({ color: 'positive', message: 'Produto excluído com sucesso!' })
+        this.carregarProdutos()
+      } catch (error) {
+        console.error(error)
+        Notify.create({ color: 'negative', message: 'Erro ao excluir o produto.' })
       }
     },
     formatDate(data) {
