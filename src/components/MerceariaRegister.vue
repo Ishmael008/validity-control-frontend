@@ -108,14 +108,13 @@ import axios from 'axios'
 import { useQuasar } from 'quasar'
 
 export default {
-  name: 'MerceariaRegisterPage',
+  name: 'MerceariaRegister',
   setup() {
     const $q = useQuasar()
     const nomeUsuario = ref(localStorage.getItem('nomeUsuario') || '')
-    const produtos = ref([{ ean: '', name: '', validity: '', description: '' }])
     const carregando = ref(false)
-
     const chaveStorage = `produtos_${nomeUsuario.value}`
+    const produtos = ref([{ ean: '', name: '', validity: '', description: '' }])
 
     onMounted(() => {
       const dadosSalvos = localStorage.getItem(chaveStorage)
@@ -140,19 +139,39 @@ export default {
       produtos.value.splice(index, 1)
     }
 
+    function validarProdutos() {
+      for (const [i, produto] of produtos.value.entries()) {
+        if (!produto.ean?.trim()) {
+          throw new Error(`Produto #${i + 1}: Código EAN é obrigatório.`)
+        }
+        if (!produto.name?.trim()) {
+          throw new Error(`Produto #${i + 1}: Nome do produto é obrigatório.`)
+        }
+        if (!produto.validity) {
+          throw new Error(`Produto #${i + 1}: Data de validade é obrigatória.`)
+        }
+        const dataValidade = new Date(produto.validity)
+        if (isNaN(dataValidade.getTime())) {
+          throw new Error(`Produto #${i + 1}: Data de validade inválida.`)
+        }
+      }
+    }
+
     async function finalizarCadastro() {
       carregando.value = true
-
       try {
+        validarProdutos()
         const token = localStorage.getItem('authToken')
 
         for (const produto of produtos.value) {
           const payload = {
-            eanOfProduct: produto.ean,
-            nameOfProduct: produto.name,
+            eanOfProduct: produto.ean.trim(),
+            nameOfProduct: produto.name.trim(),
             validity: new Date(produto.validity).toISOString(),
-            description: produto.description
+            description: produto.description ? produto.description.trim() : ''
           }
+
+          console.log('Enviando payload ajustado:', payload)
 
           await axios.post(
             'https://validity-controll-uyi3.onrender.com/api/1/productcontrol',
@@ -166,22 +185,16 @@ export default {
           )
         }
 
-        $q.notify({ color: 'positive', message: 'Todos os produtos cadastrados com sucesso!' })
-
+        $q.notify({ type: 'positive', message: 'Produtos cadastrados com sucesso!' })
         produtos.value = [{ ean: '', name: '', validity: '', description: '' }]
         localStorage.removeItem(chaveStorage)
 
-      } catch (err) {
-        console.error('❌ Erro no cadastro:', err.response?.data || err.message)
-        const msg = err.response?.data?.title || 'Erro ao cadastrar produtos.'
-        $q.notify({ color: 'negative', message: msg })
+      } catch (error) {
+        console.error('Erro no cadastro:', error)
+        $q.notify({ type: 'negative', message: error.message || 'Erro ao cadastrar produtos.' })
       } finally {
         carregando.value = false
       }
-    }
-
-    function irParaProdutosDoDia() {
-      window.location.href = '/#/produtos-do-dia'
     }
 
     return {
@@ -190,8 +203,7 @@ export default {
       carregando,
       adicionarProduto,
       removerProduto,
-      finalizarCadastro,
-      irParaProdutosDoDia
+      finalizarCadastro
     }
   }
 }
