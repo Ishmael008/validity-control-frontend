@@ -106,11 +106,13 @@
 import { ref, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'MerceariaRegister',
   setup() {
     const $q = useQuasar()
+    const router = useRouter()
     const nomeUsuario = ref(localStorage.getItem('nomeUsuario') || '')
     const carregando = ref(false)
     const chaveStorage = `produtos_${nomeUsuario.value}`
@@ -197,22 +199,19 @@ export default {
       }
     }
 
+    function irParaProdutosDoDia() {
+      router.push('/produtos-do-dia')
+    }
+
     return {
       nomeUsuario,
       produtos,
       carregando,
       adicionarProduto,
       removerProduto,
-      finalizarCadastro
+      finalizarCadastro,
+      irParaProdutosDoDia
     }
   }
 }
 </script>
-
-
-<style scoped>
-.q-page {
-  max-width: 800px;
-  margin: auto;
-}
-</style>

@@ -105,7 +105,7 @@ export default {
           localStorage.setItem('authToken', token)
           localStorage.setItem('nomeUsuario', name.value)
 
-          Notify.create({ type: 'positive', message: 'Login realizado com sucesso!' })
+          Notify.create({ color: 'positive', message: 'Login realizado com sucesso!'  })
           await router.push('/cadastro/mercearia')
         } else {
           mensagemErro.value = 'Token inválido.'
