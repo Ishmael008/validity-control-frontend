@@ -63,7 +63,7 @@ export default {
 
         // Faz a requisição POST com FormData (FromForm no backend)
         await axios.post(
-          'https://validity-controll-uyi3.onrender.com/api/1/Usuario',
+          'https://validity-controll-1.onrender.com/api/1/Usuario',
           formData
         )
 

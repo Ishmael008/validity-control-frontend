@@ -176,7 +176,7 @@ export default {
           console.log('Enviando payload:', payload)
 
           await axios.post(
-            'https://validity-controll-uyi3.onrender.com/api/1/productcontrol',
+            'https://validity-controll-1.onrender.com/api/1/productcontrol',
             payload,
             {
               headers: {

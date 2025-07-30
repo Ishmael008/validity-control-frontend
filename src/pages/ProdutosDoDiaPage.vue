@@ -53,7 +53,7 @@ export default {
   methods: {
     async carregarProdutos() {
       try {
-        const response = await axios.get('https://validity-controll-uyi3.onrender.com/api/1/productcontrol/products')
+        const response = await axios.get('https://validity-controll-1.onrender.com/api/1/productcontrol/products')
         this.produtos = response.data
       } catch (error) {
         console.error(error)
@@ -65,7 +65,7 @@ export default {
     },
     async excluirProduto(ean) {
       try {
-        await axios.delete(`https://validity-controll-uyi3.onrender.com/api/1/productcontrol`, {
+        await axios.delete(`https://validity-controll-1.onrender.com/api/1/productcontrol`, {
           params: { ean }
         })
         Notify.create({ color: 'positive', message: 'Produto excluído com sucesso!' })
