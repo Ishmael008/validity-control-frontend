@@ -7,22 +7,9 @@
       <q-card>
         <q-card-section>
           <div class="text-subtitle2">Produto {{ index + 1 }}</div>
-          <q-input
-            v-model="editando[produto.eanOfProduct].name"
-            label="Nome"
-            filled dense class="q-mb-sm"
-          />
-          <q-input
-            v-model="editando[produto.eanOfProduct].validity"
-            label="Validade"
-            type="date"
-            filled dense class="q-mb-sm"
-          />
-          <q-input
-            v-model="editando[produto.eanOfProduct].description"
-            label="Descrição"
-            filled dense class="q-mb-sm"
-          />
+          <q-input v-model="editando[produto.eanOfProduct].name" label="Nome" filled dense class="q-mb-sm" />
+          <q-input v-model="editando[produto.eanOfProduct].validity" label="Validade" type="date" filled dense class="q-mb-sm" />
+          <q-input v-model="editando[produto.eanOfProduct].description" label="Descrição" filled dense class="q-mb-sm" />
           <div class="text-caption">EAN: {{ produto.eanOfProduct }}</div>
           <div class="text-caption">Vence em: {{ produto.daysUntilExpiration }} dia(s)</div>
         </q-card-section>
@@ -38,7 +25,6 @@
     </div>
   </q-page>
 </template>
-
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
