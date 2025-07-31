@@ -1,91 +1,123 @@
 <template>
   <q-page class="bg-grey-1 q-pa-md" style="min-height: 100vh;">
-    <div class="text-h5 q-mb-md">Controle de Validade</div>
-    <div class="text-subtitle1 q-mb-lg">Confira Produtos Próximos do Vencimento</div>
+    <q-card class="q-pa-md shadow-10" style="max-width: 700px; margin: 0 auto;">
+      <q-card-section>
+        <div class="text-h5 text-primary text-center q-mb-md">Controle de Validade</div>
+        <div class="text-subtitle1 text-center q-mb-lg">Confira Produtos Próximos do Vencimento</div>
 
-    <div v-for="(produto, index) in produtos" :key="produto.eanOfProduct" class="q-mb-md">
-      <q-card>
-        <q-card-section>
-          <div class="text-subtitle2">Produto {{ index + 1 }}</div>
-          <q-input v-model="editando[produto.eanOfProduct].name" label="Nome" filled dense class="q-mb-sm" />
-          <q-input v-model="editando[produto.eanOfProduct].validity" label="Validade" type="date" filled dense class="q-mb-sm" />
-          <q-input v-model="editando[produto.eanOfProduct].description" label="Descrição" filled dense class="q-mb-sm" />
-          <div class="text-caption">EAN: {{ produto.eanOfProduct }}</div>
-          <div class="text-caption">Vence em: {{ produto.daysUntilExpiration }} dia(s)</div>
-        </q-card-section>
+        <div v-if="produtos.length > 0">
+          <div
+            v-for="produto in produtos"
+            :key="produto.eanOfProduct"
+            class="q-pa-sm q-mb-sm bg-grey-3 rounded-borders"
+          >
+            <div><strong>Nome:</strong> {{ produto.nameOfProduct || 'Indefinido' }}</div>
+            <div><strong>EAN:</strong> {{ produto.eanOfProduct || 'Indefinido' }}</div>
+            <div><strong>Validade:</strong> {{ formatDate(produto.validity) }}</div>
+            <div><strong>Vence em:</strong> {{ produto.daysToMatury ?? 'Indefinido' }} dia(s)</div>
+            <div><strong>Descrição:</strong> {{ produto.description || 'Sem descrição' }}</div>
 
-        <q-card-actions align="right">
-          <q-btn
-            color="primary"
-            label="Atualizar"
-            @click="atualizarProduto(produto.eanOfProduct)"
-          />
-        </q-card-actions>
-      </q-card>
-    </div>
+            <q-btn
+              dense
+              color="negative"
+              label="Excluir"
+              class="q-mt-sm"
+              @click="excluirProduto(produto.eanOfProduct)"
+            />
+          </div>
+        </div>
+
+        <div v-else class="text-center text-grey q-mt-lg">
+          Nenhum produto próximo do vencimento encontrado.
+        </div>
+      </q-card-section>
+
+      <q-card-actions align="center">
+        <q-btn label="Voltar" color="primary" @click="$router.push('/cadastro/mercearia')" />
+      </q-card-actions>
+    </q-card>
   </q-page>
 </template>
-<script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+
+<script>
 import { Notify } from 'quasar'
 
-const produtos = ref([])
-const editando = ref({})
-
-const carregarProdutos = async () => {
-  try {
-    const response = await axios.get('https://validity-controll-1.onrender.com/api/1/productcontrol/products')
-    produtos.value = response.data
-
-    editando.value = {}
-    produtos.value.forEach(produto => {
-      editando.value[produto.eanOfProduct] = {
-        name: produto.name,
-        validity: produto.validity,
-        description: produto.description
-      }
-    })
-  } catch (error) {
-    console.error('Erro ao carregar produtos:', error)
-    Notify.create({
-      color: 'negative',
-      message: 'Erro ao buscar produtos.'
-    })
-  }
-}
-
-const atualizarProduto = async (ean) => {
-  try {
-    const dadosAtualizados = {
-      ...editando.value[ean],
-      ean: ean
+export default {
+  data() {
+    return {
+      produtos: []
     }
+  },
+  methods: {
+    async carregarProdutos() {
+      try {
+        const response = await fetch('https://validity-controll-1.onrender.com/api/1/productcontrol/day-products')
+        const data = await response.json()
+        this.produtos = data
 
-    await axios.put(`https://validity-controll-1.onrender.com/api/1/productcontrol/${ean}`, dadosAtualizados)
+        // Checa produtos vencidos
+        const vencidos = this.produtos.filter(p => p.daysToMatury <= 0)
+        if (vencidos.length > 0) {
+          const mensagem = vencidos.length === 1
+            ? `O produto "${vencidos[0].nameOfProduct}" já venceu. Deseja enviar um feedback?`
+            : `${vencidos.length} produtos já venceram. Deseja enviar feedback sobre algum deles?`
 
-    Notify.create({
-      color: 'positive',
-      message: 'Produto atualizado com sucesso!'
-    })
+          Notify.create({
+            message: mensagem,
+            color: 'warning',
+            timeout: 7000,
+            actions: [
+              {
+                label: 'Feedback',
+                color: 'white',
+                handler: () => {
+                  this.$router.push(`/feedback/${vencidos[0].eanOfProduct}`)
+                }
+              },
+              { label: 'Fechar', color: 'white' }
+            ]
+          })
+        }
+      } catch (error) {
+        console.error('Erro ao carregar produtos:', error)
+        Notify.create({
+          message: 'Erro ao buscar produtos.',
+          color: 'negative'
+        })
+      }
+    },
+    formatDate(data) {
+      const d = new Date(data)
+      return d.toLocaleDateString('pt-BR')
+    },
+    async excluirProduto(ean) {
+      try {
+        const confirm = window.confirm('Tem certeza que deseja excluir este produto?')
+        if (!confirm) return
 
-    carregarProdutos()
-  } catch (error) {
-    console.error('Erro ao atualizar produto:', error)
-    Notify.create({
-      color: 'negative',
-      message: 'Erro ao atualizar produto.'
-    })
+        const response = await fetch(`https://validity-controll-1.onrender.com/api/1/productcontrol/${ean}`, {
+          method: 'DELETE'
+        })
+
+        if (!response.ok) throw new Error('Erro ao excluir')
+
+        Notify.create({
+          message: 'Produto excluído com sucesso.',
+          color: 'positive'
+        })
+
+        this.carregarProdutos()
+      } catch (error) {
+        console.error('Erro ao excluir produto:', error)
+        Notify.create({
+          message: 'Erro ao excluir produto.',
+          color: 'negative'
+        })
+      }
+    }
+  },
+  mounted() {
+    this.carregarProdutos()
   }
 }
-
-onMounted(() => {
-  carregarProdutos()
-})
 </script>
-
-<style scoped>
-.text-subtitle2 {
-  font-weight: 500;
-}
-</style>
