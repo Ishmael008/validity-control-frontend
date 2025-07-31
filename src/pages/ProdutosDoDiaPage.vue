@@ -39,6 +39,51 @@
   </q-page>
 </template>
 
+<template>
+  <q-page class="q-pa-md bg-grey-1">
+    <div class="text-h5 q-mb-md">Produtos do Dia</div>
+
+    <q-table
+      :rows="produtos"
+      :columns="colunas"
+      row-key="ean"
+      flat
+      bordered
+      dense
+    >
+      <template v-slot:body-cell="props">
+        <q-tr :props="props">
+          <q-td>{{ props.row.ean }}</q-td>
+          <q-td v-if="editando && produtoEditando.ean === props.row.ean">
+            <q-input v-model="produtoEditando.name" dense />
+          </q-td>
+          <q-td v-else>{{ props.row.name }}</q-td>
+
+          <q-td v-if="editando && produtoEditando.ean === props.row.ean">
+            <q-input v-model="produtoEditando.validity" dense type="date" />
+          </q-td>
+          <q-td v-else>{{ formatDate(props.row.validity) }}</q-td>
+
+          <q-td v-if="editando && produtoEditando.ean === props.row.ean">
+            <q-input v-model="produtoEditando.description" dense />
+          </q-td>
+          <q-td v-else>{{ props.row.description }}</q-td>
+
+          <q-td>
+            <div v-if="editando && produtoEditando.ean === props.row.ean">
+              <q-btn dense color="green" icon="check" @click="atualizarProduto" />
+              <q-btn dense color="red" icon="close" flat @click="cancelarEdicao" />
+            </div>
+            <div v-else>
+              <q-btn dense color="primary" icon="edit" @click="editarProduto(props.row)" />
+            </div>
+          </q-td>
+        </q-tr>
+      </template>
+    </q-table>
+  </q-page>
+</template>
+
 <script>
 import axios from 'axios'
 import { Notify } from 'quasar'
@@ -49,7 +94,14 @@ export default {
     return {
       produtos: [],
       produtoEditando: null,
-      editando: false
+      editando: false,
+      colunas: [
+        { name: 'ean', label: 'EAN', align: 'left', field: 'ean' },
+        { name: 'name', label: 'Nome', align: 'left' },
+        { name: 'validity', label: 'Validade', align: 'left' },
+        { name: 'description', label: 'Descrição', align: 'left' },
+        { name: 'acoes', label: 'Ações', align: 'center' }
+      ]
     }
   },
   methods: {
@@ -65,18 +117,6 @@ export default {
         })
       }
     },
-    async excluirProduto(ean) {
-      try {
-        await axios.delete(`https://validity-controll-1.onrender.com/api/1/productcontrol`, {
-          params: { ean }
-        })
-        Notify.create({ color: 'positive', message: 'Produto excluído com sucesso!' })
-        this.carregarProdutos()
-      } catch (error) {
-        console.error(error)
-        Notify.create({ color: 'negative', message: 'Erro ao excluir o produto.' })
-      }
-    },
     editarProduto(produto) {
       this.produtoEditando = { ...produto }
       this.editando = true
@@ -87,17 +127,13 @@ export default {
           ean: this.produtoEditando.ean.trim(),
           name: this.produtoEditando.name.trim(),
           validity: new Date(this.produtoEditando.validity).toISOString(),
-          description: this.produtoEditando.description ? this.produtoEditando.description.trim() : ''
+          description: this.produtoEditando.description?.trim() || ''
         }
 
         await axios.put(
           `https://validity-controll-1.onrender.com/api/1/productcontrol/${this.produtoEditando.ean}`,
           payload,
-          {
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
+          { headers: { 'Content-Type': 'application/json' } }
         )
 
         Notify.create({ color: 'positive', message: 'Produto atualizado com sucesso!' })
@@ -116,8 +152,7 @@ export default {
     formatDate(data) {
       if (!data) return 'Indefinido'
       const d = new Date(data)
-      if (isNaN(d)) return 'Indefinido'
-      return d.toLocaleDateString()
+      return isNaN(d) ? 'Indefinido' : d.toLocaleDateString()
     }
   },
   mounted() {
@@ -125,3 +160,9 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.q-table .q-td {
+  vertical-align: middle;
+}
+</style>
