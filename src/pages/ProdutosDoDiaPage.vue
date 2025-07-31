@@ -47,7 +47,9 @@ export default {
   name: 'ProdutosDoDiaPage',
   data() {
     return {
-      produtos: []
+      produtos: [],
+      produtoEditando: null,
+      editando: false
     }
   },
   methods: {
@@ -74,6 +76,42 @@ export default {
         console.error(error)
         Notify.create({ color: 'negative', message: 'Erro ao excluir o produto.' })
       }
+    },
+    editarProduto(produto) {
+      this.produtoEditando = { ...produto }
+      this.editando = true
+    },
+    async atualizarProduto() {
+      try {
+        const payload = {
+          ean: this.produtoEditando.ean.trim(),
+          name: this.produtoEditando.name.trim(),
+          validity: new Date(this.produtoEditando.validity).toISOString(),
+          description: this.produtoEditando.description ? this.produtoEditando.description.trim() : ''
+        }
+
+        await axios.put(
+          `https://validity-controll-1.onrender.com/api/1/productcontrol/${this.produtoEditando.ean}`,
+          payload,
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+
+        Notify.create({ color: 'positive', message: 'Produto atualizado com sucesso!' })
+        this.produtoEditando = null
+        this.editando = false
+        this.carregarProdutos()
+      } catch (error) {
+        console.error(error)
+        Notify.create({ color: 'negative', message: 'Erro ao atualizar o produto.' })
+      }
+    },
+    cancelarEdicao() {
+      this.produtoEditando = null
+      this.editando = false
     },
     formatDate(data) {
       if (!data) return 'Indefinido'
