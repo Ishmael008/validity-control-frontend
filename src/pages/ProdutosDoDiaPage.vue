@@ -54,8 +54,8 @@ export default {
   methods: {
     async carregarProdutos() {
       try {
-        const response = await fetch('https://validity-controll-1.onrender.com/api/1/productcontrol/day-products', {
-          method: 'POST',
+        const response = await fetch('https://validity-controll-1.onrender.com/api/1/productcontrol/products', {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${localStorage.getItem('token')}`
