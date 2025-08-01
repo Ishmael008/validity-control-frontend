@@ -48,14 +48,26 @@ export default {
       produtos: []
     }
   },
+  mounted() {
+    this.carregarProdutos()
+  },
   methods: {
     async carregarProdutos() {
       try {
-        const response = await fetch('https://validity-controll-1.onrender.com/api/1/productcontrol/day-products')
+        const response = await fetch('https://validity-controll-1.onrender.com/api/1/productcontrol/day-products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        })
+
+        if (!response.ok) throw new Error('Erro ao buscar produtos')
+
         const data = await response.json()
         this.produtos = data
 
-        // Checa produtos vencidos
+        // Notificação de produtos vencidos
         const vencidos = this.produtos.filter(p => p.daysToMatury <= 0)
         if (vencidos.length > 0) {
           const mensagem = vencidos.length === 1
@@ -85,39 +97,7 @@ export default {
           color: 'negative'
         })
       }
-    },
-    formatDate(data) {
-      const d = new Date(data)
-      return d.toLocaleDateString('pt-BR')
-    },
-    async excluirProduto(ean) {
-      try {
-        const confirm = window.confirm('Tem certeza que deseja excluir este produto?')
-        if (!confirm) return
-
-        const response = await fetch(`https://validity-controll-1.onrender.com/api/1/productcontrol/${ean}`, {
-          method: 'DELETE'
-        })
-
-        if (!response.ok) throw new Error('Erro ao excluir')
-
-        Notify.create({
-          message: 'Produto excluído com sucesso.',
-          color: 'positive'
-        })
-
-        this.carregarProdutos()
-      } catch (error) {
-        console.error('Erro ao excluir produto:', error)
-        Notify.create({
-          message: 'Erro ao excluir produto.',
-          color: 'negative'
-        })
-      }
     }
-  },
-  mounted() {
-    this.carregarProdutos()
   }
 }
 </script>
