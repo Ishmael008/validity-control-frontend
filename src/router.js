@@ -1,15 +1,21 @@
-import { createRouter, createWebHashHistory} from 'vue-router'
+// src/router.js
 
+import { createRouter, createWebHashHistory } from 'vue-router'
+
+import LoginPage from './components/Login.vue'
 import UserRegister from './components/UserRegister.vue'
-import MerceariaRegister from './components/MerceariaRegister.vue'
+import MerceariaRegisterPage from './components/MerceariaRegister.vue'
 import ProdutosDoDiaPage from './pages/ProdutosDoDiaPage.vue'
-import Login from './components/Login.vue'
 
 const routes = [
-  { path: '/', component: Login },
+  { path: '/', component: LoginPage },
   { path: '/register', component: UserRegister },
-  { path: '/cadastro/mercearia', component: MerceariaRegister },
-  { path: '/produtos-do-dia', component: ProdutosDoDiaPage }
+  { path: '/cadastro/mercearia', component: MerceariaRegisterPage },
+  { path: '/produtos-do-dia', component: ProdutosDoDiaPage },
+  {
+    path: '/feedback/:ean?',
+    component: () => import('./pages/FeedbackForm.vue') // corrigido aqui
+  }
 ]
 
 const router = createRouter({

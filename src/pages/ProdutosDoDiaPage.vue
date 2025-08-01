@@ -17,13 +17,20 @@
             <div><strong>Vence em:</strong> {{ produto.daysToMatury ?? 'Indefinido' }} dia(s)</div>
             <div><strong>Descrição:</strong> {{ produto.description || 'Sem descrição' }}</div>
 
-            <q-btn
-              dense
-              color="negative"
-              label="Excluir"
-              class="q-mt-sm"
-              @click="excluirProduto(produto.eanOfProduct)"
-            />
+            <div class="row q-mt-sm q-gutter-sm">
+              <q-btn
+                dense
+                color="primary"
+                label="Atualizar"
+                @click="atualizarProduto(produto)"
+              />
+              <q-btn
+                dense
+                color="negative"
+                label="Excluir"
+                @click="excluirProduto(produto.eanOfProduct)"
+              />
+            </div>
           </div>
         </div>
 
@@ -102,6 +109,33 @@ export default {
           color: 'negative'
         })
       }
+    },
+    excluirProduto(ean) {
+      fetch(`https://validity-controll-1.onrender.com/api/1/productcontrol/remove-products?ean=${ean}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+        .then(response => {
+          if (!response.ok) throw new Error('Erro ao excluir produto')
+          Notify.create({ message: 'Produto excluído com sucesso', color: 'positive' })
+          this.carregarProdutos()
+        })
+        .catch(error => {
+          console.error(error)
+          Notify.create({ message: 'Erro ao excluir produto', color: 'negative' })
+        })
+    },
+    atualizarProduto(produto) {
+      // Enviar para rota de cadastro com query params
+      this.$router.push({
+        path: '/cadastro/mercearia',
+        query: {
+          ean: produto.eanOfProduct
+        }
+      })
     }
   }
 }
