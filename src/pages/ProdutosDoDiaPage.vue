@@ -52,6 +52,11 @@ export default {
     this.carregarProdutos()
   },
   methods: {
+    formatDate(dateString) {
+      if (!dateString) return 'Indefinido'
+      const date = new Date(dateString)
+      return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+    },
     async carregarProdutos() {
       try {
         const response = await fetch('https://validity-controll-1.onrender.com/api/1/productcontrol/products', {
