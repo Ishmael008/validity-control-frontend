@@ -17,20 +17,13 @@
             <div><strong>Vence em:</strong> {{ produto.daysToMatury ?? 'Indefinido' }} dia(s)</div>
             <div><strong>Descrição:</strong> {{ produto.description || 'Sem descrição' }}</div>
 
-            <div class="row q-mt-sm q-gutter-sm">
-              <q-btn
-                dense
-                color="primary"
-                label="Atualizar"
-                @click="atualizarProduto(produto)"
-              />
-              <q-btn
-                dense
-                color="negative"
-                label="Excluir"
-                @click="excluirProduto(produto.eanOfProduct)"
-              />
-            </div>
+            <q-btn
+              dense
+              color="negative"
+              label="Excluir"
+              class="q-mt-sm"
+              @click="excluirProduto(produto.eanOfProduct)"
+            />
           </div>
         </div>
 
@@ -110,32 +103,33 @@ export default {
         })
       }
     },
-    excluirProduto(ean) {
-      fetch(`https://validity-controll-1.onrender.com/api/1/productcontrol/remove-products?ean=${ean}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+    async excluirProduto(ean) {
+      try {
+        if (!ean) {
+          Notify.create({ type: 'negative', message: 'EAN inválido para exclusão.' })
+          return
         }
-      })
-        .then(response => {
-          if (!response.ok) throw new Error('Erro ao excluir produto')
-          Notify.create({ message: 'Produto excluído com sucesso', color: 'positive' })
-          this.carregarProdutos()
+
+        // Chamada para seu endpoint DELETE, adapte a URL se necessário
+        const response = await fetch(`https://validity-controll-1.onrender.com/api/1/productcontrol/Remove-products?ean=${ean}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
         })
-        .catch(error => {
-          console.error(error)
-          Notify.create({ message: 'Erro ao excluir produto', color: 'negative' })
-        })
-    },
-    atualizarProduto(produto) {
-      // Enviar para rota de cadastro com query params
-      this.$router.push({
-        path: '/cadastro/mercearia',
-        query: {
-          ean: produto.eanOfProduct
-        }
-      })
+
+        if (!response.ok) throw new Error('Erro ao excluir produto')
+
+        Notify.create({ type: 'positive', message: 'Produto excluído com sucesso!' })
+
+        // Atualiza lista local após exclusão
+        this.produtos = this.produtos.filter(p => p.eanOfProduct !== ean)
+
+      } catch (error) {
+        console.error('Erro ao excluir produto:', error)
+        Notify.create({ type: 'negative', message: 'Erro ao excluir produto.' })
+      }
     }
   }
 }
